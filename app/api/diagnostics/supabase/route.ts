@@ -46,32 +46,43 @@ export async function GET() {
     const admin = createClient(url, serviceKey, { auth: { persistSession: false } });
     const anon = createClient(url, anonKey, { auth: { persistSession: false } });
 
-    const [{ error: adminError }, { error: anonError }] = await Promise.all([
-      admin.from("settings").select("id", { count: "exact", head: true }),
-      anon.from("settings").select("id", { count: "exact", head: true }),
-    ]);
+    const tables = ["settings", "bookings", "cars", "users"] as const;
+
+    const adminChecks = await Promise.all(
+      tables.map(async (table) => {
+        const { error } = await admin.from(table).select("id", { count: "exact", head: true });
+        return [table, error] as const;
+      })
+    );
+
+    const anonChecks = await Promise.all(
+      tables.map(async (table) => {
+        const { error } = await anon.from(table).select("id", { count: "exact", head: true });
+        return [table, error] as const;
+      })
+    );
+
+    const formatError = (error: { message?: string; code?: string | null; details?: string | null; hint?: string | null } | null) =>
+      error
+        ? {
+            ok: false,
+            message: error.message ?? "",
+            code: error.code ?? null,
+            details: error.details ?? null,
+            hint: error.hint ?? null,
+          }
+        : { ok: true };
+
+    const adminResult = Object.fromEntries(adminChecks.map(([table, error]) => [table, formatError(error)]));
+    const anonResult = Object.fromEntries(anonChecks.map(([table, error]) => [table, formatError(error)]));
+
+    const adminOk = adminChecks.every(([, error]) => !error);
 
     return NextResponse.json({
-      ok: !adminError,
+      ok: adminOk,
       ...result,
-      admin: adminError
-        ? {
-            ok: false,
-            message: adminError.message,
-            code: adminError.code ?? null,
-            details: adminError.details ?? null,
-            hint: adminError.hint ?? null,
-          }
-        : { ok: true },
-      anon: anonError
-        ? {
-            ok: false,
-            message: anonError.message,
-            code: anonError.code ?? null,
-            details: anonError.details ?? null,
-            hint: anonError.hint ?? null,
-          }
-        : { ok: true },
+      admin: adminResult,
+      anon: anonResult,
     });
   } catch (error) {
     return NextResponse.json(
