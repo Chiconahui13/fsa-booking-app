@@ -47,16 +47,16 @@ const generateSlots = (start: string, end: string, slotLength: number, interval:
 };
 
 export async function generateStaticParams() {
-  const { data, error } = await supabaseAdmin.from<Setting>("settings").select("title").eq("is_active", true);
+  const { data, error } = await supabaseAdmin.from("settings").select("title").eq("is_active", true);
   if (error || !data) return [];
-  return data.map((setting) => ({ title: setting.title }));
+  return (data as Array<Pick<Setting, "title">>).map((setting) => ({ title: setting.title }));
 }
 
 export default async function BookingSettingPage({ params }: { params: Promise<{ title: string }> }) {
   const { title } = await params;
   const decodedTitle = decodeURIComponent(title);
   const { data, error } = await supabaseAdmin
-    .from<Setting>("settings")
+    .from("settings")
     .select("*")
     .eq("title", decodedTitle)
     .eq("is_active", true)
@@ -66,12 +66,14 @@ export default async function BookingSettingPage({ params }: { params: Promise<{
     return notFound();
   }
 
+  const setting = data as Setting;
+
   return (
     <div className="min-h-screen bg-slate-50 px-6 py-12 text-slate-900">
       <div className="mx-auto max-w-4xl rounded-3xl bg-white p-10 shadow-xl shadow-slate-200/70">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-4xl font-semibold">{data.title}</h1>
+            <h1 className="text-4xl font-semibold">{setting.title}</h1>
             <p className="mt-2 text-sm leading-7 text-slate-600">
               Booking details for this active setting.
             </p>
@@ -85,21 +87,21 @@ export default async function BookingSettingPage({ params }: { params: Promise<{
           <div className="grid gap-6 sm:grid-cols-2">
             <div>
               <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Slot length</h2>
-              <p className="mt-2 text-lg font-semibold text-slate-900">{data.slot_length} minutes</p>
+              <p className="mt-2 text-lg font-semibold text-slate-900">{setting.slot_length} minutes</p>
             </div>
             <div>
               <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Interval</h2>
-              <p className="mt-2 text-lg font-semibold text-slate-900">{data.slot_intervall} minutes</p>
+              <p className="mt-2 text-lg font-semibold text-slate-900">{setting.slot_intervall} minutes</p>
             </div>
           </div>
           <div>
             <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Availability</h2>
-            <p className="mt-2 text-lg font-semibold text-slate-900">{formatAvailability(data.availability_start, data.availability_end)}</p>
+            <p className="mt-2 text-lg font-semibold text-slate-900">{formatAvailability(setting.availability_start, setting.availability_end)}</p>
           </div>
         </div>
 
         <div className="mt-10 space-y-4">
-          <BookingSlotForm setting={data} />
+          <BookingSlotForm setting={setting} />
         </div>
       </div>
     </div>

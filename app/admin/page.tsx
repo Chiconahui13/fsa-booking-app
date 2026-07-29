@@ -15,7 +15,9 @@ type Setting = {
   is_active: boolean;
 };
 
-type FormState = Omit<Setting, "id">;
+type FormState = Omit<Setting, "id" | "slack_webhook"> & {
+  slack_webhook: string;
+};
 
 const initialFormState: FormState = {
   title: "",

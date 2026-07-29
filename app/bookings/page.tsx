@@ -71,7 +71,7 @@ export default function BookingsPage() {
 
     setMessage(editingId ? "Booking updated." : "Booking added.");
     setEditingId(null);
-    setFormState({ user_email: "", car_number: "", start_at: "", end_at: "" });
+    setFormState({ user_email: "", car_id: null, start_at: "", end_at: "" });
     loadBookings();
   };
 
@@ -79,7 +79,7 @@ export default function BookingsPage() {
     setEditingId(booking.id);
     setFormState({
       user_email: booking.user_email,
-      car_number: booking.car_number,
+      car_id: booking.car_id,
       start_at: booking.start_at.slice(0, 16),
       end_at: booking.end_at.slice(0, 16),
     });
@@ -122,11 +122,12 @@ export default function BookingsPage() {
             />
           </label>
           <label className="block">
-            <span className="text-sm font-medium text-slate-700">ID</span>
+            <span className="text-sm font-medium text-slate-700">Car ID</span>
             <input
-              type="text"
-              value={formState.car_number}
-              onChange={(event) => handleChange("car_number", event.target.value)}
+              type="number"
+              min={1}
+              value={formState.car_id ?? ""}
+              onChange={(event) => setFormState((current) => ({ ...current, car_id: event.target.value ? Number(event.target.value) : null }))}
               className="mt-2 w-full rounded-2xl border border-slate-300 px-4 py-3"
             />
           </label>

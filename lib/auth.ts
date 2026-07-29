@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
 const COOKIE_NAME = "app_session";
-const AUTH_SECRET = process.env.AUTH_SECRET;
+const AUTH_SECRET = process.env.AUTH_SECRET ?? "";
 
 if (!AUTH_SECRET) {
   throw new Error("Missing AUTH_SECRET environment variable");

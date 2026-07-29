@@ -1,5 +1,4 @@
 import { google } from "googleapis";
-import { JWT } from "google-auth-library";
 
 const serviceAccountKey = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
 const calendarId = process.env.GOOGLE_CALENDAR_ID;
@@ -13,7 +12,7 @@ if (!calendarId) {
 }
 
 const keyData = JSON.parse(serviceAccountKey);
-const auth = new JWT({
+const auth = new google.auth.JWT({
   email: keyData.client_email,
   key: keyData.private_key,
   scopes: ["https://www.googleapis.com/auth/calendar"],
