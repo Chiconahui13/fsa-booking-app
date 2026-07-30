@@ -4,11 +4,14 @@ import { getAuthenticatedUser } from "@/lib/auth";
 
 export async function GET(request: NextRequest) {
   const user = await getAuthenticatedUser(request);
+  let query = supabaseAdmin.from("settings").select("*").order("id", { ascending: false });
+
+  // Public users should only see active settings; authenticated users can see all.
   if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    query = query.eq("is_active", true);
   }
 
-  const { data, error } = await supabaseAdmin.from("settings").select("*").order("id", { ascending: false });
+  const { data, error } = await query;
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
